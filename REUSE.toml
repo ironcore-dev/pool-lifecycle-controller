@@ -1,0 +1,33 @@
+version = 1
+SPDX-PackageName = "pool-lifecycle-controller"
+SPDX-PackageSupplier = "IronCore authors <ospo@sap.com>"
+SPDX-PackageDownloadLocation = "https://github.com/ironcore-dev/pool-lifecycle-controller"
+
+[[annotations]]
+path = [
+    ".github/**",
+    ".devcontainer/**",
+    ".gitignore",
+    ".golangci.yml",
+    "CODEOWNERS",
+    "Makefile",
+    "PROJECT",
+    "config/**",
+    "examples/**",
+    "go.mod",
+    "go.sum",
+    ".custom-gcl.yml",
+    "hack/**",
+    "Dockerfile",
+    ".dockerignore",
+    "REUSE.toml"
+]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2026 SAP SE or an SAP affiliate company and IronCore contributors"
+SPDX-License-Identifier = "Apache-2.0"
+
+[[annotations]]
+path = ["docs/**", "README.md"]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2026 SAP SE or an SAP affiliate company and IronCore contributors"
+SPDX-License-Identifier = "Apache-2.0"
