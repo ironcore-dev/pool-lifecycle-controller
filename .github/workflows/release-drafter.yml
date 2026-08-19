@@ -31,6 +31,7 @@ jobs:
     name: Run autolabeler
     if: github.event_name == 'pull_request_target'
     permissions:
+      contents: read #until internal
       pull-requests: write
     runs-on: ubuntu-latest
     steps:
