@@ -14,8 +14,8 @@ import (
 )
 
 const (
-	Name  = "pool-lifecycle-controller"
-	Group = "maintenance.ironcore.dev"
+	Name  = "compute.ironcore.dev:system:pool-lifecycle-controller"
+	Group = "compute.ironcore.dev:system:pool-lifecycle-controllers"
 )
 
 var (
