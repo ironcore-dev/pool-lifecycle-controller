@@ -71,7 +71,6 @@ func (r *MachinePoolLifecycleReconciler) reconcileExists(ctx context.Context, ca
 func (r *MachinePoolLifecycleReconciler) reconcile(ctx context.Context, capiMachine *clusterv1.Machine) (ctrl.Result, error) {
 	log := ctrl.LoggerFrom(ctx)
 
-	log.V(1).Info("Ensuring finalizer")
 	modified, err := clientutils.PatchEnsureFinalizer(ctx, r.Client, capiMachine, machinePoolFinalizer)
 	if err != nil {
 		return ctrl.Result{}, err
@@ -80,9 +79,11 @@ func (r *MachinePoolLifecycleReconciler) reconcile(ctx context.Context, capiMach
 		log.V(1).Info("Added finalizer")
 		return ctrl.Result{}, nil
 	}
-	log.V(1).Info("Finalizer is already present")
 
-	log.V(1).Info("Ensuring pre-drain hook")
+	if capiMachine.Annotations[preDrainHookAnnotation] == preDrainHookValue {
+		return ctrl.Result{}, nil
+	}
+
 	base := client.MergeFrom(capiMachine.DeepCopy())
 	if capiMachine.Annotations == nil {
 		capiMachine.Annotations = map[string]string{}
@@ -91,7 +92,7 @@ func (r *MachinePoolLifecycleReconciler) reconcile(ctx context.Context, capiMach
 	if err := r.Patch(ctx, capiMachine, base); err != nil {
 		return ctrl.Result{}, fmt.Errorf("error adding pre-drain hook: %w", err)
 	}
-	ctrl.LoggerFrom(ctx).V(1).Info("Added pre-drain hook")
+	log.V(1).Info("Added pre-drain hook")
 
 	return ctrl.Result{}, nil
 }
@@ -99,46 +100,40 @@ func (r *MachinePoolLifecycleReconciler) reconcile(ctx context.Context, capiMach
 func (r *MachinePoolLifecycleReconciler) reconcileDelete(ctx context.Context, capiMachine *clusterv1.Machine) (ctrl.Result, error) {
 	log := ctrl.LoggerFrom(ctx)
 
-	if !capiMachine.Status.NodeRef.IsDefined() {
-		log.V(1).Info("No node reference is defined, skipping cleanup")
+	if capiMachine.Status.NodeRef.IsDefined() {
+		poolName := capiMachine.Status.NodeRef.Name
+
+		evacuated, err := r.evictMachinePool(ctx, poolName)
+		if err != nil {
+			return ctrl.Result{}, err
+		}
+		if !evacuated {
+			log.V(1).Info("MachinePool still has non-tolerating machines, holding pre-drain hook", "machinePool", poolName)
+			return ctrl.Result{}, nil
+		}
+
 		if err := r.removePreDrainHook(ctx, capiMachine); err != nil {
 			return ctrl.Result{}, err
 		}
 
-		if _, err := clientutils.PatchEnsureNoFinalizer(ctx, r.Client, capiMachine, machinePoolFinalizer); err != nil {
-			return ctrl.Result{}, fmt.Errorf("error removing finalizer: %w", err)
+		log.V(1).Info("MachinePool evacuated, releasing pre-drain hook", "machinePool", poolName)
+		if controllerutil.ContainsFinalizer(capiMachine, clusterv1.MachineFinalizer) {
+			log.V(1).Info("Waiting for CAPI to drain and delete the node", "machinePool", poolName)
+			return ctrl.Result{}, nil
 		}
 
-		return ctrl.Result{}, nil
+		log.V(1).Info("Ensure machine pool is deleted")
+		if err := r.deleteMachinePool(ctx, poolName); err != nil {
+			return ctrl.Result{}, err
+		}
+	} else {
+		log.V(1).Info("No node reference is defined, skipping cleanup")
+		if err := r.removePreDrainHook(ctx, capiMachine); err != nil {
+			return ctrl.Result{}, err
+		}
 	}
 
-	poolName := capiMachine.Status.NodeRef.Name
-
-	evacuated, err := r.evictMachinePool(ctx, poolName)
-	if err != nil {
-		return ctrl.Result{}, err
-	}
-	if !evacuated {
-		log.V(1).Info("MachinePool still has non-tolerating machines, holding pre-drain hook", "MachinePool", poolName)
-		return ctrl.Result{}, nil
-	}
-
-	log.V(1).Info("MachinePool evacuated, releasing pre-drain hook", "MachinePool", poolName)
-	if err := r.removePreDrainHook(ctx, capiMachine); err != nil {
-		return ctrl.Result{}, err
-	}
-
-	if controllerutil.ContainsFinalizer(capiMachine, clusterv1.MachineFinalizer) {
-		log.V(1).Info("Waiting for CAPI to drain and delete the node")
-		return ctrl.Result{}, nil
-	}
-
-	log.V(1).Info("Ensure machine pool is deleted")
-	if err := r.deleteMachinePool(ctx, poolName); err != nil {
-		return ctrl.Result{}, err
-	}
-
-	if _, err := clientutils.PatchEnsureNoFinalizer(ctx, r.Client, capiMachine, machinePoolFinalizer); err != nil {
+	if _, err := clientutils.PatchEnsureNoFinalizer(ctx, r.Client, capiMachine, machinePoolFinalizer); client.IgnoreNotFound(err) != nil {
 		return ctrl.Result{}, fmt.Errorf("error removing finalizer: %w", err)
 	}
 	return ctrl.Result{}, nil
@@ -153,9 +148,12 @@ func (r *MachinePoolLifecycleReconciler) matchesSelector(capiMachine *clusterv1.
 }
 
 func (r *MachinePoolLifecycleReconciler) removePreDrainHook(ctx context.Context, capiMachine *clusterv1.Machine) error {
+	if capiMachine.Annotations[preDrainHookAnnotation] != preDrainHookValue {
+		return nil
+	}
 	base := client.MergeFrom(capiMachine.DeepCopy())
 	delete(capiMachine.Annotations, preDrainHookAnnotation)
-	if err := r.Patch(ctx, capiMachine, base); err != nil {
+	if err := r.Patch(ctx, capiMachine, base); client.IgnoreNotFound(err) != nil {
 		return fmt.Errorf("error removing pre-drain hook: %w", err)
 	}
 	ctrl.LoggerFrom(ctx).V(1).Info("Removed pre-drain hook")
@@ -257,6 +255,7 @@ func (r *MachinePoolLifecycleReconciler) SetupWithManager(mgr ctrl.Manager, iron
 			ironCoreCache,
 			&computev1alpha1.Machine{},
 			handler.TypedEnqueueRequestsFromMapFunc(r.enqueueCAPIMachinesForIronCoreMachine),
+			predicate.TypedGenerationChangedPredicate[*computev1alpha1.Machine]{},
 		)).
 		Complete(r)
 }
@@ -279,7 +278,7 @@ func (r *MachinePoolLifecycleReconciler) enqueueCAPIMachinesForIronCoreMachine(c
 
 	capiMachineList := &clusterv1.MachineList{}
 	if err := r.List(ctx, capiMachineList, client.MatchingFields{index.CAPIMachineNodeRefNameField: poolName}); err != nil {
-		ctrl.LoggerFrom(ctx).Error(err, "Failed to list CAPI Machines for MachinePool", "MachinePool", poolName)
+		ctrl.LoggerFrom(ctx).Error(err, "Failed to list CAPI Machines for MachinePool", "machinePool", poolName)
 		return nil
 	}
 
