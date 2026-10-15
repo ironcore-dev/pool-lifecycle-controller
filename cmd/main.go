@@ -22,8 +22,10 @@ import (
 	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 
-	computev1alpha1 "github.com/ironcore-dev/ironcore/api/compute/v1alpha1"
+	brokerconfig "github.com/ironcore-dev/brokers/common/client/config"
 	"github.com/ironcore-dev/ironcore/utils/client/config"
+
+	computev1alpha1 "github.com/ironcore-dev/ironcore/api/compute/v1alpha1"
 	clusterv1 "sigs.k8s.io/cluster-api/api/core/v1beta2"
 
 	ironcoreconfig "github.com/ironcore-dev/pool-lifecycle-controller/internal/client/config"
@@ -103,7 +105,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	localGetter, err := config.NewBrokerGetter(config.GetterOptions{Name: "management"})
+	localGetter, err := brokerconfig.NewBrokerGetter(config.GetterOptions{Name: "management"})
 	if err != nil {
 		setupLog.Error(err, "Failed to create config getter")
 		os.Exit(1)
