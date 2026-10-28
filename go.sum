@@ -99,8 +99,6 @@ github.com/grpc-ecosystem/grpc-gateway/v2 v2.29.0 h1:5VipnvEpbqr2gA2VbM+nYVbkIF2
 github.com/grpc-ecosystem/grpc-gateway/v2 v2.29.0/go.mod h1:Hyl3n6Twe1hvtd9XUXDec4pTvgMSEixRuQKPTMH2bNs=
 github.com/inconshreveable/mousetrap v1.1.0 h1:wN+x4NVGpMsO7ErUn/mUI3vEoE6Jt13X2s0bqwp9tc8=
 github.com/inconshreveable/mousetrap v1.1.0/go.mod h1:vpF70FUmC8bwa3OWnCshd2FqLfsEA9PFc4w1p2J65bw=
-github.com/ironcore-dev/brokers v0.0.0-20261008070207-fb69f288218b h1:PZGFUBnovGla8pYzvgpvENHq4vizkEtiJ/jZ9YRF9r0=
-github.com/ironcore-dev/brokers v0.0.0-20261008070207-fb69f288218b/go.mod h1:x+m+Esu8ZiNW/DLKgq2N4ebeOM7O/MeKtsnuMrCxNaA=
 github.com/ironcore-dev/controller-utils v0.15.1 h1:m7ucpzQgMYBF8adnPTesmJ5Ca2lsXVJVKGJVhA1TVx8=
 github.com/ironcore-dev/controller-utils v0.15.1/go.mod h1:E/3nSv9TxRtSGpejWMwLTxbb9fknTcPhcA8moHXa0sY=
 github.com/ironcore-dev/ironcore v0.8.1-0.20261008070126-308a8977709e h1:odALW6ZVrcZuYtAHqSkIzQR5rIdfzCY4owOaigJnv9Y=

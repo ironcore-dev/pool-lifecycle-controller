@@ -3,7 +3,6 @@ module github.com/ironcore-dev/pool-lifecycle-controller
 go 1.26.4
 
 require (
-	github.com/ironcore-dev/brokers v0.0.0-20261008070207-fb69f288218b
 	github.com/ironcore-dev/controller-utils v0.15.1
 	github.com/ironcore-dev/ironcore v0.8.1-0.20261008070126-308a8977709e
 	github.com/onsi/ginkgo/v2 v2.33.1
