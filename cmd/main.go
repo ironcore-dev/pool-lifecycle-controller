@@ -22,7 +22,7 @@ import (
 	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 
-	brokerconfig "github.com/ironcore-dev/brokers/common/client/config"
+	"github.com/ironcore-dev/controller-utils/configutils"
 	"github.com/ironcore-dev/ironcore/utils/client/config"
 
 	computev1alpha1 "github.com/ironcore-dev/ironcore/api/compute/v1alpha1"
@@ -105,12 +105,18 @@ func main() {
 		os.Exit(1)
 	}
 
-	localGetter, err := brokerconfig.NewBrokerGetter(config.GetterOptions{Name: "management"})
+	localGetter, err := configutils.NewGetter(configutils.GetterOptions{Name: "management"})
 	if err != nil {
 		setupLog.Error(err, "Failed to create config getter")
 		os.Exit(1)
 	}
-	cfg, err := localGetter.GetConfig(ctx, &localCfgOpts)
+	cfg, err := localGetter.GetConfig(ctx,
+		configutils.Kubeconfig(localCfgOpts.Kubeconfig),
+		configutils.Context(localCfgOpts.Context),
+		configutils.EgressSelectorConfig(localCfgOpts.EgressSelectorConfig),
+		configutils.QPS(localCfgOpts.QPS),
+		configutils.Burst(localCfgOpts.Burst),
+	)
 	if err != nil {
 		setupLog.Error(err, "Failed to load kubeconfig")
 		os.Exit(1)
