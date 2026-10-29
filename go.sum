@@ -101,8 +101,8 @@ github.com/inconshreveable/mousetrap v1.1.0 h1:wN+x4NVGpMsO7ErUn/mUI3vEoE6Jt13X2
 github.com/inconshreveable/mousetrap v1.1.0/go.mod h1:vpF70FUmC8bwa3OWnCshd2FqLfsEA9PFc4w1p2J65bw=
 github.com/ironcore-dev/brokers v0.0.0-20261008070207-fb69f288218b h1:PZGFUBnovGla8pYzvgpvENHq4vizkEtiJ/jZ9YRF9r0=
 github.com/ironcore-dev/brokers v0.0.0-20261008070207-fb69f288218b/go.mod h1:x+m+Esu8ZiNW/DLKgq2N4ebeOM7O/MeKtsnuMrCxNaA=
-github.com/ironcore-dev/controller-utils v0.14.1-0.20260904065051-9ddd709051f4 h1:fKocO3kKaPg6c1SDufxAM+k5abTTfoIk4U/t+IjSOEI=
-github.com/ironcore-dev/controller-utils v0.14.1-0.20260904065051-9ddd709051f4/go.mod h1:8rLIaac9ovKzlKupxCrw9V/IF2rjI6zqv+VI0kRS6fE=
+github.com/ironcore-dev/controller-utils v0.15.0 h1:K8vMOeY8rMyZcoL67hGvOZxxPb7rlrR6yS5VvcP6Xig=
+github.com/ironcore-dev/controller-utils v0.15.0/go.mod h1:E/3nSv9TxRtSGpejWMwLTxbb9fknTcPhcA8moHXa0sY=
 github.com/ironcore-dev/ironcore v0.8.1-0.20261008070126-308a8977709e h1:odALW6ZVrcZuYtAHqSkIzQR5rIdfzCY4owOaigJnv9Y=
 github.com/ironcore-dev/ironcore v0.8.1-0.20261008070126-308a8977709e/go.mod h1:rnnlhTmaG1YWHqlvHHsu8EdIo85It7Eb747nIGm4oa8=
 github.com/joshdk/go-junit v1.0.0 h1:S86cUKIdwBHWwA6xCmFlf3RTLfVXYQfvanM5Uh+K6GE=
